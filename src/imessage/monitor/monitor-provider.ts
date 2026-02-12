@@ -777,12 +777,18 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
   };
   abort?.addEventListener("abort", onAbort, { once: true });
 
+  // Per-chat watermark so we only process messages newer than last poll; avoids missing
+  // inbound messages when the history window is filled with multi-chunk outbound replies.
+  const pollWatermark = new Map<number, number>();
+  const POLL_HISTORY_LIMIT = 50;
+  const MAX_CHATS_PER_POLL = 30;
+
   type ChatsListResult = { chats?: Array<{ id?: number }> };
   const pollOnce = async (): Promise<void> => {
     let chats: Array<{ id?: number }> = [];
     try {
       const list = await client.request<ChatsListResult>("chats.list", {
-        limit: 50,
+        limit: MAX_CHATS_PER_POLL,
       });
       if (Array.isArray(list)) {
         chats = list as Array<{ id?: number }>;
@@ -795,7 +801,6 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
       }
       return;
     }
-    const historyLimitPerChat = 5;
     const timeoutMs = Math.min(probeTimeoutMs, 15_000);
     for (const chat of chats) {
       if (abort?.aborted) {
@@ -811,7 +816,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
         "--chat-id",
         String(cid),
         "--limit",
-        String(historyLimitPerChat),
+        String(POLL_HISTORY_LIMIT),
         "--json",
       ];
       if (resolvedDbPath) {
@@ -826,16 +831,32 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
           continue;
         }
         const lines = res.stdout.split(/\r?\n/).filter((l) => l.trim());
+        const parsed: IMessagePayload[] = [];
         for (const line of lines) {
           try {
             const message = JSON.parse(line) as IMessagePayload;
-            if (message?.is_from_me) {
-              continue;
+            if (message?.id != null) {
+              parsed.push(message);
             }
-            await handleMessage({ message });
           } catch {
             // Skip malformed lines
           }
+        }
+        parsed.sort((a, b) => (Number(a.id) ?? 0) - (Number(b.id) ?? 0));
+        const lastSeen = pollWatermark.get(cid) ?? 0;
+        for (const message of parsed) {
+          const mid = Number(message.id);
+          if (mid <= lastSeen) {
+            continue;
+          }
+          if (message.is_from_me) {
+            continue;
+          }
+          await handleMessage({ message });
+        }
+        if (parsed.length > 0) {
+          const maxId = Math.max(...parsed.map((m) => Number(m.id) ?? 0));
+          pollWatermark.set(cid, Math.max(pollWatermark.get(cid) ?? 0, maxId));
         }
       } catch {
         // Per-chat errors are non-fatal; continue with next chat
