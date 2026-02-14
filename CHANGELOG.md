@@ -6,6 +6,7 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- Models: support dynamic header templating in `models.providers.<id>.headers`. Use `{{session.key}}` for per-session values (e.g. Fireworks.ai `x-session-affinity` for prompt caching) and `{{agent.id}}` for per-agent values. Static headers remain supported.
 - Sandbox: add `sandbox.browser.binds` to configure browser-container bind mounts separately from exec containers. (#16230) Thanks @seheepeak.
 
 ### Fixes

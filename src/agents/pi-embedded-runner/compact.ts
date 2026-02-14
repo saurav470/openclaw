@@ -58,6 +58,7 @@ import {
 } from "../skills.js";
 import { resolveTranscriptPolicy } from "../transcript-policy.js";
 import { buildEmbeddedExtensionPaths } from "./extensions.js";
+import { applyExtraParamsToAgent, applyProviderHeaderTemplatesToAgent } from "./extra-params.js";
 import {
   logToolSchemasForGoogle,
   sanitizeSessionHistory,
@@ -556,6 +557,11 @@ export async function compactEmbeddedPiSessionDirect(
         settingsManager,
       });
       applySystemPromptOverrideToSession(session, systemPromptOverride());
+      applyExtraParamsToAgent(session.agent, params.config, provider, modelId);
+      applyProviderHeaderTemplatesToAgent(session.agent, params.config, provider, {
+        sessionKey: params.sessionKey ?? params.sessionId,
+        agentId: sessionAgentId,
+      });
 
       try {
         const prior = await sanitizeSessionHistory({
