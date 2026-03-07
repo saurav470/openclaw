@@ -277,8 +277,8 @@ describe("promptGatewayConfig", () => {
     });
     expect(result.config.gateway?.remote).toBeDefined();
     expect(result.config.gateway?.remote?.url).toBe("wss://remote.example/ws");
-    // In local mode with plaintext token, remote.token is synced to the new auth token.
-    expect(result.config.gateway?.remote?.token).toBe("new-auth-token");
+    // remote.token is preserved; we do not overwrite with local auth token.
+    expect(result.config.gateway?.remote?.token).toBe("existing-remote-token");
   });
 
   it("preserves gateway.remote as-is when auth uses SecretRef (no plaintext token)", async () => {
