@@ -87,7 +87,7 @@ describe("feishuOnboardingAdapter.getStatus", () => {
           channels: {
             feishu: {
               appId: { source: "env", id: appIdKey, provider: "default" },
-              appSecret: { source: "env", id: appSecretKey, provider: "default" },
+              appSecret: { source: "env", id: appSecretKey, provider: "default" }, // pragma: allowlist secret
             },
           },
         } as never,
@@ -97,25 +97,25 @@ describe("feishuOnboardingAdapter.getStatus", () => {
       expect(status.configured).toBe(false);
     } finally {
       if (prevAppId === undefined) {
-        delete process.env[appIdKey];
+        delete process.env[appIdKey]; // pragma: allowlist secret
       } else {
         process.env[appIdKey] = prevAppId;
       }
       if (prevAppSecret === undefined) {
-        delete process.env[appSecretKey];
+        delete process.env[appSecretKey]; // pragma: allowlist secret
       } else {
-        process.env[appSecretKey] = prevAppSecret;
+        process.env[appSecretKey] = prevAppSecret; // pragma: allowlist secret
       }
     }
   });
 
   it("treats env SecretRef appId/appSecret as configured in status", async () => {
     const appIdKey = "FEISHU_APP_ID_STATUS_TEST";
-    const appSecretKey = "FEISHU_APP_SECRET_STATUS_TEST";
+    const appSecretKey = "FEISHU_APP_SECRET_STATUS_TEST"; // pragma: allowlist secret
     const prevAppId = process.env[appIdKey];
-    const prevAppSecret = process.env[appSecretKey];
+    const prevAppSecret = process.env[appSecretKey]; // pragma: allowlist secret
     process.env[appIdKey] = "cli_env_123";
-    process.env[appSecretKey] = "secret_env_456";
+    process.env[appSecretKey] = "secret_env_456"; // pragma: allowlist secret
 
     try {
       const status = await feishuOnboardingAdapter.getStatus({
@@ -123,14 +123,14 @@ describe("feishuOnboardingAdapter.getStatus", () => {
           channels: {
             feishu: {
               appId: { source: "env", id: appIdKey, provider: "default" },
-              appSecret: { source: "env", id: appSecretKey, provider: "default" },
+              appSecret: { source: "env", id: appSecretKey, provider: "default" }, // pragma: allowlist secret
             },
           },
         } as never,
         ...baseStatusContext,
       });
 
-      expect(status.configured).toBe(true);
+      expect(status.configured).toBe(true); // pragma: allowlist secret
     } finally {
       if (prevAppId === undefined) {
         delete process.env[appIdKey];
@@ -138,7 +138,7 @@ describe("feishuOnboardingAdapter.getStatus", () => {
         process.env[appIdKey] = prevAppId;
       }
       if (prevAppSecret === undefined) {
-        delete process.env[appSecretKey];
+        delete process.env[appSecretKey]; // pragma: allowlist secret
       } else {
         process.env[appSecretKey] = prevAppSecret;
       }

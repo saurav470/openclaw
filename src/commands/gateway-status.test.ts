@@ -147,8 +147,8 @@ function makeRemoteGatewayConfig(
   return {
     gateway: {
       mode: "remote",
-      remote: { url, token },
-      auth: { token: localToken },
+      remote: { url, token }, // pragma: allowlist secret
+      auth: { token: localToken }, // pragma: allowlist secret
     },
   };
 }

@@ -71,7 +71,7 @@ describe("pairing setup code", () => {
       },
       {
         env: {
-          GW_PASSWORD: "resolved-password",
+          GW_PASSWORD: "resolved-password", // pragma: allowlist secret
         },
       },
     );
@@ -80,7 +80,7 @@ describe("pairing setup code", () => {
     if (!resolved.ok) {
       throw new Error("expected setup resolution to succeed");
     }
-    expect(resolved.payload.password).toBe("resolved-password");
+    expect(resolved.payload.password).toBe("resolved-password"); // pragma: allowlist secret
     expect(resolved.authLabel).toBe("password");
   });
 
@@ -103,7 +103,7 @@ describe("pairing setup code", () => {
       },
       {
         env: {
-          OPENCLAW_GATEWAY_PASSWORD: "password-from-env",
+          OPENCLAW_GATEWAY_PASSWORD: "password-from-env", // pragma: allowlist secret
         },
       },
     );
@@ -112,7 +112,7 @@ describe("pairing setup code", () => {
     if (!resolved.ok) {
       throw new Error("expected setup resolution to succeed");
     }
-    expect(resolved.payload.password).toBe("password-from-env");
+    expect(resolved.payload.password).toBe("password-from-env"); // pragma: allowlist secret
     expect(resolved.authLabel).toBe("password");
   });
 

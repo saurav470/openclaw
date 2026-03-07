@@ -20,7 +20,7 @@ describe("googlechatPlugin outbound sendMedia", () => {
       contentType: "image/png",
     }));
     const fetchRemoteMedia = vi.fn(async () => ({
-      buffer: Buffer.from("remote-bytes"),
+      buffer: Buffer.from("remote-bytes"), // pragma: allowlist secret
       fileName: "remote.png",
       contentType: "image/png",
     }));
