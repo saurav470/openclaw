@@ -153,6 +153,23 @@ function makeRemoteGatewayConfig(
   };
 }
 
+function mockLocalTokenEnvRefConfig(envTokenId = "MISSING_GATEWAY_TOKEN") {
+  loadConfig.mockReturnValueOnce({
+    secrets: {
+      providers: {
+        default: { source: "env" },
+      },
+    },
+    gateway: {
+      mode: "local",
+      auth: {
+        mode: "token",
+        token: { source: "env", provider: "default", id: envTokenId },
+      },
+    },
+  } as unknown as ReturnType<typeof loadConfig>);
+}
+
 async function runGatewayStatus(
   runtime: ReturnType<typeof createRuntimeCapture>["runtime"],
   opts: { timeout: string; json?: boolean; ssh?: string; sshAuto?: boolean; sshIdentity?: string },
@@ -191,20 +208,7 @@ describe("gateway-status command", () => {
   it("surfaces unresolved SecretRef auth diagnostics in warnings", async () => {
     const { runtime, runtimeLogs, runtimeErrors } = createRuntimeCapture();
     await withEnvAsync({ MISSING_GATEWAY_TOKEN: undefined }, async () => {
-      loadConfig.mockReturnValueOnce({
-        secrets: {
-          providers: {
-            default: { source: "env" },
-          },
-        },
-        gateway: {
-          mode: "local",
-          auth: {
-            mode: "token",
-            token: { source: "env", provider: "default", id: "MISSING_GATEWAY_TOKEN" },
-          },
-        },
-      } as unknown as ReturnType<typeof loadConfig>);
+      mockLocalTokenEnvRefConfig();
 
       await runGatewayStatus(runtime, { timeout: "1000", json: true });
     });
@@ -232,20 +236,7 @@ describe("gateway-status command", () => {
         MISSING_GATEWAY_TOKEN: undefined,
       },
       async () => {
-        loadConfig.mockReturnValueOnce({
-          secrets: {
-            providers: {
-              default: { source: "env" },
-            },
-          },
-          gateway: {
-            mode: "local",
-            auth: {
-              mode: "token",
-              token: { source: "env", provider: "default", id: "MISSING_GATEWAY_TOKEN" },
-            },
-          },
-        } as unknown as ReturnType<typeof loadConfig>);
+        mockLocalTokenEnvRefConfig();
 
         await runGatewayStatus(runtime, { timeout: "1000", json: true });
       },
