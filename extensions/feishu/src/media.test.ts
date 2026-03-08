@@ -345,6 +345,34 @@ describe("sendMediaFeishu msg_type routing", () => {
     );
   });
 
+  it("honors explicit empty localRoots (no fallback to context mediaLocalRoots)", async () => {
+    resolveFeishuAccountMock.mockReturnValueOnce({
+      configured: true,
+      accountId: "main",
+      config: { localRoots: [] },
+    });
+    loadWebMediaMock.mockRejectedValueOnce(
+      new (class extends Error {
+        code = "path-not-allowed";
+        name = "LocalMediaAccessError";
+      })(),
+    );
+
+    await expect(
+      sendMediaFeishu({
+        cfg: {} as any,
+        to: "user:ou_target",
+        mediaUrl: "/some/local/file.png",
+        mediaLocalRoots: ["/allowed/context/root"],
+      }),
+    ).rejects.toMatchObject({ code: "path-not-allowed" });
+
+    expect(loadWebMediaMock).toHaveBeenCalledWith(
+      "/some/local/file.png",
+      expect.objectContaining({ localRoots: [] }),
+    );
+  });
+
   it("fails closed when media URL fetch is blocked", async () => {
     loadWebMediaMock.mockRejectedValueOnce(
       new Error("Blocked: resolves to private/internal IP address"),

@@ -426,7 +426,8 @@ function resolveFeishuMediaLocalRoots(params: {
   if (channelRoots === "any") {
     return "any";
   }
-  if (Array.isArray(channelRoots) && channelRoots.length > 0) {
+  // Honor explicit array (including empty): [] means disable local-path reads for Feishu.
+  if (Array.isArray(channelRoots)) {
     return channelRoots;
   }
   return params.mediaLocalRoots?.length ? params.mediaLocalRoots : undefined;
