@@ -343,6 +343,9 @@ describe("sendMediaFeishu msg_type routing", () => {
         localRoots: channelRoots,
       }),
     );
+    // readFile bypass must NOT be injected for a plain array of roots.
+    const callArg = loadWebMediaMock.mock.calls[0][1] as Record<string, unknown>;
+    expect(callArg).not.toHaveProperty("readFile");
   });
 
   it("honors explicit empty localRoots (no fallback to context mediaLocalRoots)", async () => {
