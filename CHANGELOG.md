@@ -242,6 +242,7 @@ Docs: https://docs.openclaw.ai
 - CLI/Docs memory help accuracy: clarify `openclaw memory status --deep` behavior and align memory command examples/docs with the current search options. (#31803) Thanks @JasonOA888 and @Avi974.
 - Auto-reply/allowlist store account scoping: keep `/allowlist ... --store` writes scoped to the selected account and clear legacy unscoped entries when removing default-account store access, preventing cross-account default allowlist bleed-through from legacy pairing-store reads. Thanks @vincentkoc.
 - Security/Nostr: harden profile mutation/import loopback guards by failing closed on non-loopback forwarded client headers (`x-forwarded-for` / `x-real-ip`) and rejecting `sec-fetch-site: cross-site`; adds regression coverage for proxy-forwarded and browser cross-site mutation attempts.
+- Gateway/session lane concurrency: apply `agents.defaults.maxConcurrent` to per-session lanes (e.g. Telegram group `session:agent:main:telegram:group:-5065715577`) so multiple turns can run concurrently per session instead of being serialized to one slot; fixes group chats never replying after the first message when the session lane was stuck with default maxConcurrent 1. Related to #16055.
 
 ## 2026.3.2
 

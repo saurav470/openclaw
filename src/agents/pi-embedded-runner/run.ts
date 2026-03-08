@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import { resolveAgentMaxConcurrent } from "../../config/agent-limits.js";
 import {
   ensureContextEnginesInitialized,
   resolveContextEngine,
@@ -9,7 +10,7 @@ import { computeBackoff, sleepWithAbort, type BackoffPolicy } from "../../infra/
 import { generateSecureToken } from "../../infra/secure-random.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
-import { enqueueCommandInLane } from "../../process/command-queue.js";
+import { enqueueCommandInLane, setCommandLaneConcurrency } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { hasConfiguredModelFallbacks } from "../agent-scope.js";
@@ -255,6 +256,9 @@ export async function runEmbeddedPiAgent(
 ): Promise<EmbeddedPiRunResult> {
   const sessionLane = resolveSessionLane(params.sessionKey?.trim() || params.sessionId);
   const globalLane = resolveGlobalLane(params.lane);
+  // Session lanes are created on first use with maxConcurrent 1; align with Main lane
+  // so that agents.defaults.maxConcurrent allows concurrent turns per session (e.g. group).
+  setCommandLaneConcurrency(sessionLane, resolveAgentMaxConcurrent(params.config));
   const enqueueGlobal =
     params.enqueue ?? ((task, opts) => enqueueCommandInLane(globalLane, task, opts));
   const enqueueSession =
